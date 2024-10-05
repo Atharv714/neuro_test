@@ -2,7 +2,7 @@ from fastapi import FastAPI, UploadFile, File
 import io
 import pickle
 from pydub import AudioSegment
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 from openai import OpenAI
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -101,12 +101,19 @@ async def process_audio(file: UploadFile = File(...)):
 
         audio_url = convert_to_speech(neurify)
 
-        return JSONResponse({
+        response_data = {
             'chat_response': neurify,
             'audio_url': audio_url,
             'depressed_flag': depressed_flag,
             'sad_detector': sad_flag
-        })    
+        }
+
+        # Print the response data to the console (or logs)
+        print("Response being sent to frontend:", response_data)
+
+        # Return the JSON response
+        return JSONResponse(response_data)
+
 
     except Exception as e:
         return {"error": str(e)}
@@ -143,3 +150,9 @@ def is_depressed(message):
 def is_sad(message):
     sentiment_score = analyze_sentiment(message)
     return sentiment_score < -0.2
+
+
+@app.get("/output.mp3")
+def serve_audio():
+    return FileResponse("output.mp3")
+

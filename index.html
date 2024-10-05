@@ -1,72 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Record Audio with Waveform</title>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voice Recording with Waveform</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f4f8;
-            margin: 0;
-            padding: 20px;
-            text-align: center;
-        }
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f0f4f8;
+        margin: 0;
+        padding: 20px;
+        text-align: center;
+      }
 
-        h1 {
-            color: #333;
-            margin-bottom: 30px;
-        }
+      h1 {
+        color: #333;
+        margin-bottom: 30px;
+      }
 
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px 30px;
-            font-size: 16px;
-            margin: 10px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
+      button {
+        background-color: #4caf50;
+        color: white;
+        padding: 15px 30px;
+        font-size: 16px;
+        margin: 10px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
 
-        button#stop {
-            background-color: #f44336;
-        }
+      button#stop {
+        background-color: #f44336;
+      }
 
-        button:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-        }
+      button:disabled {
+        background-color: #aaa;
+        cursor: not-allowed;
+      }
 
-        button:hover:enabled {
-            opacity: 0.9;
-        }
+      button:hover:enabled {
+        opacity: 0.9;
+      }
 
-        canvas {
-            display: block;
-            margin: 20px auto;
-            width: 100%;
-            max-width: 600px;
-            height: 150px;
-            background-color: #fff;
-            border: 1px solid #ddd;
-        }
+      canvas {
+        display: block;
+        margin: 20px auto;
+        width: 100%;
+        max-width: 600px;
+        height: 150px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+      }
 
-        audio {
-            margin-top: 20px;
-            width: 100%;
-            max-width: 300px;
-        }
+      audio {
+        margin-top: 20px;
+        width: 100%;
+        max-width: 300px;
+      }
 
-        footer {
-            margin-top: 40px;
-            font-size: 14px;
-            color: #666;
-        }
+      footer {
+        margin-top: 40px;
+        font-size: 14px;
+        color: #666;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <h1>Voice Recording with Waveform</h1>
 
     <button id="start">Start Recording</button>
@@ -75,120 +75,168 @@
     <!-- Canvas for the waveform -->
     <canvas id="waveformCanvas"></canvas>
 
+    <!-- For playing generated audio -->
     <audio id="audioPlayback" controls></audio>
 
+    <!-- Chat response from the bot -->
     <footer>
-        <p></p>
+      <p id="botResponse"></p>
     </footer>
 
     <script>
-        const startButton = document.getElementById("start");
-        const stopButton = document.getElementById("stop");
-        const audioPlayback = document.getElementById("audioPlayback");
-        const canvas = document.getElementById("waveformCanvas");
-        const canvasCtx = canvas.getContext("2d");
+      const startButton = document.getElementById("start");
+      const stopButton = document.getElementById("stop");
+      const audioPlayback = document.getElementById("audioPlayback");
+      const canvas = document.getElementById("waveformCanvas");
+      const botResponseElement = document.getElementById("botResponse");
+      const canvasCtx = canvas.getContext("2d");
 
-        let mediaRecorder;
-        let audioChunks = [];
-        let audioContext;
-        let analyser;
-        let dataArray;
-        let source;
-        let stream;
+      let mediaRecorder;
+      let audioChunks = [];
+      let audioContext;
+      let analyser;
+      let dataArray;
+      let source;
+      let stream;
 
-        // Start recording
-        startButton.addEventListener("click", async () => {
-            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            audioContext = new AudioContext();
-            analyser = audioContext.createAnalyser();
-            analyser.fftSize = 2048; // Frequency resolution
-            const bufferLength = analyser.frequencyBinCount;
-            dataArray = new Uint8Array(bufferLength);
-            
-            source = audioContext.createMediaStreamSource(stream);
-            source.connect(analyser);
-
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                audioPlayback.src = URL.createObjectURL(audioBlob);
-                audioChunks = [];
-
-                const formData = new FormData();
-                formData.append("file", audioBlob, "recording.wav");
-
-                // Send the audio to the FastAPI backend
-                try {
-                    const response = await fetch("http://127.0.0.1:8000/process_audio/", {
-                        method: "POST",
-                        body: formData
-                    });
-                    
-                    if (response.ok) {
-                        console.log("Audio uploaded successfully!");
-                    } else {
-                        console.error("Error uploading audio");
-                    }
-                } catch (error) {
-                    console.error("Error:", error);
-                }
-
-                // Stop the audio context and waveform drawing
-                cancelAnimationFrame(drawWaveform);
-                audioContext.close();
-            };
-
-            mediaRecorder.start();
-            startButton.disabled = true;
-            stopButton.disabled = false;
-
-            drawWaveform();
-        });
-
-        // Stop recording
-        stopButton.addEventListener("click", () => {
-            mediaRecorder.stop();
-            startButton.disabled = false;
-            stopButton.disabled = true;
-            stream.getTracks().forEach(track => track.stop()); // Stop the stream
-        });
-
-        // Function to draw the waveform
-        function drawWaveform() {
-            requestAnimationFrame(drawWaveform);
-            analyser.getByteTimeDomainData(dataArray);
-
-            canvasCtx.fillStyle = 'white';
-            canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
-
-            canvasCtx.lineWidth = 2;
-            canvasCtx.strokeStyle = 'blue';
-
-            canvasCtx.beginPath();
-
-            const sliceWidth = canvas.width / dataArray.length;
-            let x = 0;
-
-            for (let i = 0; i < dataArray.length; i++) {
-                const v = dataArray[i] / 128.0; // Convert the byte data to a number
-                const y = (v * canvas.height) / 2;
-
-                if (i === 0) {
-                    canvasCtx.moveTo(x, y);
-                } else {
-                    canvasCtx.lineTo(x, y);
-                }
-
-                x += sliceWidth;
-            }
-
-            canvasCtx.lineTo(canvas.width, canvas.height / 2);
-            canvasCtx.stroke();
+      // Start recording
+      startButton.addEventListener("click", async () => {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (err) {
+          alert("Microphone access denied.");
+          return;
         }
+
+        audioContext = new AudioContext();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+        const bufferLength = analyser.frequencyBinCount;
+        dataArray = new Uint8Array(bufferLength);
+
+        source = audioContext.createMediaStreamSource(stream);
+        source.connect(analyser);
+
+        mediaRecorder = new MediaRecorder(stream);
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+          audioPlayback.src = URL.createObjectURL(audioBlob);
+          audioChunks = [];
+
+          const formData = new FormData();
+          formData.append("file", audioBlob, "recording.webm");
+
+          // Send the audio to the FastAPI backend
+
+          try {
+            const response = await fetch(
+              "http://127.0.0.1:8000/process_audio/",
+              {
+                method: "POST",
+                body: formData,
+              }
+            );
+
+            console.log("Response status:", response.status); // Log the response status code
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log("Backend response:", data); // Log the entire backend response
+
+              const { chat_response, audio_url, depressed_flag, sad_detector } =
+                data;
+
+              // Handle chat response
+              if (chat_response) {
+                const footer = document.querySelector("footer p");
+                footer.textContent = `Neurify Bot: ${chat_response}`;
+              }
+
+              // Play the generated audio
+              if (audio_url) {
+                const responseAudio = new Audio(audio_url);
+                responseAudio.play().catch((error) => {
+                  console.error("Error playing audio:", error);
+                });
+              }
+
+              // Alert if user is sad or depressed
+              if (depressed_flag) {
+                alert("The system detected signs of depression.");
+              } else if (sad_detector) {
+                alert("The system detected sadness.");
+              }
+            } else {
+              const errorData = await response.json();
+              console.error("Error response from backend:", errorData);
+              alert(
+                `Error processing audio. Server returned: ${response.status} - ${errorData.error}`
+              );
+            }
+          } catch (error) {
+            console.error("Error:", error);
+            alert(
+              "An error occurred while processing your request: " +
+                error.message
+            );
+          }
+
+          // Stop the audio context and waveform drawing
+          cancelAnimationFrame(drawWaveform);
+          audioContext.close();
+        };
+
+        mediaRecorder.start();
+        startButton.disabled = true;
+        stopButton.disabled = false;
+
+        drawWaveform();
+      });
+
+      // Stop recording
+      stopButton.addEventListener("click", () => {
+        mediaRecorder.stop();
+        startButton.disabled = false;
+        stopButton.disabled = true;
+        stream.getTracks().forEach((track) => track.stop());
+      });
+
+      // Function to draw the waveform
+      function drawWaveform() {
+        requestAnimationFrame(drawWaveform);
+        analyser.getByteTimeDomainData(dataArray);
+
+        canvasCtx.fillStyle = "white";
+        canvasCtx.fillRect(0, 0, canvas.width, canvas.height);
+
+        canvasCtx.lineWidth = 2;
+        canvasCtx.strokeStyle = "blue";
+
+        canvasCtx.beginPath();
+
+        const sliceWidth = canvas.width / dataArray.length;
+        let x = 0;
+
+        for (let i = 0; i < dataArray.length; i++) {
+          const v = dataArray[i] / 128.0;
+          const y = (v * canvas.height) / 2;
+
+          if (i === 0) {
+            canvasCtx.moveTo(x, y);
+          } else {
+            canvasCtx.lineTo(x, y);
+          }
+
+          x += sliceWidth;
+        }
+
+        canvasCtx.lineTo(canvas.width, canvas.height / 2);
+        canvasCtx.stroke();
+      }
     </script>
-</body>
+  </body>
 </html>
