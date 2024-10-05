@@ -7,6 +7,7 @@ from openai import OpenAI
 import os
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
 app = FastAPI()
