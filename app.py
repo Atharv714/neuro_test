@@ -5,11 +5,21 @@ from pydub import AudioSegment
 from fastapi.responses import JSONResponse
 from openai import OpenAI
 import os
+from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 
 app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins (you can restrict it later to your frontend's domain)
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+
+load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAIKEY'))
 
 # FastAPI route for processing audio
