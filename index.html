@@ -19,7 +19,7 @@
         }
 
         button {
-            background-color: #4CAF50; /* Green */
+            background-color: #4CAF50;
             color: white;
             padding: 15px 30px;
             font-size: 16px;
@@ -31,11 +31,11 @@
         }
 
         button#stop {
-            background-color: #f44336; /* Red */
+            background-color: #f44336;
         }
 
         button:disabled {
-            background-color: #aaa; /* Grey when disabled */
+            background-color: #aaa;
             cursor: not-allowed;
         }
 
@@ -95,7 +95,7 @@
         let dataArray;
         let source;
         let stream;
-        
+
         // Start recording
         startButton.addEventListener("click", async () => {
             stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -121,10 +121,21 @@
                 const formData = new FormData();
                 formData.append("file", audioBlob, "recording.wav");
 
-                await fetch("http://localhost:8000/upload-audio", {
-                    method: "POST",
-                    body: formData
-                });
+                // Send the audio to the FastAPI backend
+                try {
+                    const response = await fetch("http://localhost:8000/upload-audio", {
+                        method: "POST",
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        console.log("Audio uploaded successfully!");
+                    } else {
+                        console.error("Error uploading audio");
+                    }
+                } catch (error) {
+                    console.error("Error:", error);
+                }
 
                 // Stop the audio context and waveform drawing
                 cancelAnimationFrame(drawWaveform);
