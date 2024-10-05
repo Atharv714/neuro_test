@@ -53,9 +53,28 @@ async def process_audio(file: UploadFile = File(...)):
             file=audio_file,
         )
         transcript = transcription.text
-        print("Transcription:", transcript)
+ 
+        transcriptor_prompt = "You are the best transcriber correcter, you will fix the transcriptions in the most accurate way possible, and also in the language in which transcription is provided, you are proficient in english, hindi, marathi, gujrati, bengali, and other various indian languages and you have to any how, fix the transcription, there should not be even a single discrepancy"
 
-        # Return the transcription and audio URL for frontend
+        fixtranscribe = client.chat.completions.create(
+            model = "gpt-4o",
+            messages = [
+                {
+                    "role": "system",
+                    "content": transcriptor_prompt
+                },
+
+                {
+                    "role": "user",
+                    "content": transcript
+                }
+            ]
+        )
+
+        fixtranscribereturn = fixtranscribe.choices[0].message.content
+        print(fixtranscribereturn)
+
+        # only for verification
         response_data = {
             "transcription": transcript,
             "audioUrl": "http://127.0.0.1:8000/output.mp3"  
