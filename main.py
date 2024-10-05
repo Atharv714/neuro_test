@@ -6,6 +6,7 @@ from pydub import AudioSegment
 import io
 from pathlib import Path
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+from dotenv import load_dotenv
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,3 +24,4 @@ client = OpenAI(api_key=api_key)
 app = Flask(__name__)
 
 avaj = 'echo'
+
