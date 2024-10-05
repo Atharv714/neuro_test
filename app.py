@@ -9,7 +9,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-
 app = FastAPI()
 app.add_middleware(
     CORSMiddleware,
@@ -92,13 +91,22 @@ async def process_audio(file: UploadFile = File(...)):
 
 
         # only for verification
-        response_data = {
-            "transcription": transcript,
-            "audioUrl": "http://127.0.0.1:8000/output.mp3"  
-        }
+        # response_data = {
+        #     "transcription": transcript,
+        #     "audioUrl": "http://127.0.0.1:8000/output.mp3"  
+        # }
 
-        return neurify
-    
+        depressed_flag = is_depressed(usertranscript)
+        sad_flag = is_sad(usertranscript)
+
+        audio_url = convert_to_speech(neurify)
+
+        return JSONResponse({
+            'chat_response': neurify,
+            'audio_url': audio_url,
+            'depressed_flag': depressed_flag,
+            'sad_detector': sad_flag
+        })    
 
     except Exception as e:
         return {"error": str(e)}
@@ -106,7 +114,7 @@ async def process_audio(file: UploadFile = File(...)):
 import time 
 
 def convert_to_speech(text):
-    speech_file_path = "static/output.mp3"
+    speech_file_path = "output.mp3"
     
     response = client.audio.speech.create(
         model="tts-1",
@@ -120,3 +128,18 @@ def convert_to_speech(text):
     # Return the URL to the saved audio file with a timestamp to avoid caching
     return f"/output.mp3?{int(time.time())}"
 
+# vedar sentimental analysis
+
+analyzer = SentimentIntensityAnalyzer()
+
+def analyze_sentiment(text):
+    sentiment_score = analyzer.polarity_scores(text)
+    return sentiment_score['compound']
+
+def is_depressed(message):
+    sentiment_score = analyze_sentiment(message)
+    return sentiment_score < -0.5
+
+def is_sad(message):
+    sentiment_score = analyze_sentiment(message)
+    return sentiment_score < -0.2
