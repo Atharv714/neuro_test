@@ -22,6 +22,10 @@ app.add_middleware(
 load_dotenv()
 client = OpenAI(api_key=os.getenv('OPENAIKEY'))
 
+def open_file(filepath):
+    with open(filepath, 'r', encoding='utf-8', errors='ignore') as infile:
+        return infile.read()
+
 # FastAPI route for processing audio
 @app.post("/process_audio/")
 async def process_audio(file: UploadFile = File(...)):
@@ -54,7 +58,7 @@ async def process_audio(file: UploadFile = File(...)):
         )
         transcript = transcription.text
  
-        transcriptor_prompt = "You are the best transcriber correcter, you will fix the transcriptions in the most accurate way possible, and also in the language in which transcription is provided, you are proficient in english, hindi, marathi, gujrati, bengali, and other various indian languages and you have to any how, fix the transcription, there should not be even a single discrepancy"
+        transcriptor_prompt = "You are an expert transcriber specializing in Indian accents and languages. Your job is to refine transcriptions provided by the Whisper model, correcting errors that occur due to Indian accents or mixed language usage. Ensure that the final transcription accurately represents the original audio by fixing misheard words, handling code-switching (e.g., English mixed with Hindi or other Indian languages), and making minor punctuation or grammatical corrections as needed. Maintain the natural flow and meaning of the original speech while ensuring clarity and readability."
 
         fixtranscribe = client.chat.completions.create(
             model = "gpt-4o",
@@ -71,8 +75,20 @@ async def process_audio(file: UploadFile = File(...)):
             ]
         )
 
-        fixtranscribereturn = fixtranscribe.choices[0].message.content
-        print(fixtranscribereturn)
+        usertranscript = fixtranscribe.choices[0].message.content
+        print(usertranscript)
+
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": open_file('prompts.md')},
+                {"role": "user", "content": usertranscript}
+            ],
+            temperature=0.7
+        )
+        neurify = response.choices[0].message.content
+
+
 
         # only for verification
         response_data = {
@@ -80,8 +96,26 @@ async def process_audio(file: UploadFile = File(...)):
             "audioUrl": "http://127.0.0.1:8000/output.mp3"  
         }
 
-        return JSONResponse(content=response_data)
+        return neurify
+    
 
     except Exception as e:
         return {"error": str(e)}
+
+import time 
+
+def convert_to_speech(text):
+    speech_file_path = "static/output.mp3"
+    
+    response = client.audio.speech.create(
+        model="tts-1",
+        voice="nova",
+        input=text
+    )
+
+    # Save the generated audio to a file
+    response.stream_to_file(speech_file_path)
+
+    # Return the URL to the saved audio file with a timestamp to avoid caching
+    return f"/output.mp3?{int(time.time())}"
 
