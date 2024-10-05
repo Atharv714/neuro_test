@@ -58,7 +58,7 @@ async def process_audio(file: UploadFile = File(...)):
         # Return the transcription and audio URL for frontend
         response_data = {
             "transcription": transcript,
-            "audioUrl": "http://127.0.0.1:8000/output.mp3"  # You can host this audio
+            "audioUrl": "http://127.0.0.1:8000/output.mp3"  
         }
 
         return JSONResponse(content=response_data)
