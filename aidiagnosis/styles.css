@@ -6,6 +6,7 @@
 
 .container {
     max-width: 70%;
+    height: 750px;
     margin: 50px auto;
     padding: 20px;
     border-radius: 12px;
@@ -42,7 +43,7 @@
     max-width: 80%;
     padding: 10px 15px;
     word-wrap: break-word;
-    background-color: #adadad;
+    background-color: #d5d5d5;
     color: black;
     border-radius: 12px;
     text-align: left;
@@ -51,6 +52,7 @@
 }
 
 .input-container {
+    margin-top: 390px !important;
     border-radius: 12px;
     border-radius: 8px;
     margin-top: 20px;
