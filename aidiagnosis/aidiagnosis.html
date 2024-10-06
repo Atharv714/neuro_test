@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Diagnosis</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div id="messages" class="messages"></div>
+        <div class="input-container">
+            <input type="text" id="userMessage" placeholder="Type your message...">
+            <button id="sendMessage">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let messages = [];
+        let userId = "user1"; // Assuming a static user for the hackathon; can be dynamic if needed
+
+        document.getElementById("sendMessage").addEventListener("click", handleSendMessage);
+
+        function appendMessage(role, content) {
+            const messageContainer = document.getElementById("messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.className = `message ${role}`;
+            messageDiv.textContent = content;
+            messageContainer.appendChild(messageDiv);
+        }
+
+        async function handleSendMessage() {
+            const userMessage = document.getElementById("userMessage").value;
+            if (!userMessage.trim()) return;
+
+            appendMessage("user", userMessage);
+
+            try {
+                const response = await fetch("http://127.0.0.1:5000/aidiagnosis", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: userId, message: userMessage }),
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    appendMessage("assistant", data.message);
+                } else {
+                    console.error("Error:", data.error);
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+
+            document.getElementById("userMessage").value = "";
+        }
+    </script>
+</body>
+</html>

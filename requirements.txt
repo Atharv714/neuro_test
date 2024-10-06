@@ -1,0 +1,14 @@
+tensorflow
+scikit-learn
+numpy
+pandas
+tqdm
+pyaudio
+librosa
+Flask
+openai
+pydub
+vaderSentiment
+python-dotenv
+flask
+flask-cors

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diagnosis Result</title>
+    <link rel="stylesheet" href="styles1.css">
+</head>
+<body>
+    <div class="container">
+        <h2>AI Diagnosis Result</h2>
+        <div id="diagnosisResult"></div>
+
+    </div>
+      <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        const userId = "user1";  // Static user for the hackathon
+
+        async function fetchDiagnosisData() {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/get_diagnosis_result?user_id=${userId}`);
+                const data = await response.json();
+                if (response.ok) {
+                    displayDiagnosisData(data);
+                } else {
+                    document.getElementById("diagnosisResult").innerText = "No diagnosis data found.";
+                }
+            } catch (error) {
+                console.error("Error:", error);
+            }
+        }
+
+        function displayDiagnosisData(data) {
+    const diagnosisDiv = document.getElementById("diagnosisResult");
+    diagnosisDiv.innerHTML = `
+    <h2>Notes</h2>
+        <md>
+            ${data.notes}
+        </md>
+
+    <h2>Report</h2>
+        <md>
+            ${data.report}
+        </md>
+        <md>
+            # Clinical Evaluation
+            ${data.clinical}
+        </md>
+        <md>
+            # Referrals & Tests
+            ${data.referrals}
+        </md>
+    `;
+
+    // Call renderMarkdown() to render the newly added markdown content
+    renderMarkdown();
+}
+
+
+        // function displayDiagnosisData(data) {
+        //     const diagnosisDiv = document.getElementById("diagnosisResult");
+        //     diagnosisDiv.innerHTML = `
+        //         <div>
+        //             <h3>Notes</h3>
+        //             <ul>${data.notes.split('\n').map(line => `<li>${line}</li>`).join('')}</ul>
+        //         </div>
+        //         <div>
+        //             <h3>Report</h3>
+        //             <ul>${data.report.split('\n').map(line => `<li>${line}</li>`).join('')}</ul>
+        //         </div>
+        //         <div>
+        //             <h3>Clinical Evaluation</h3>
+        //             <ul>${data.clinical.split('\n').map(line => `<li>${line}</li>`).join('')}</ul>
+        //         </div>
+        //         <div>
+        //             <h3>Referrals & Tests</h3>
+        //             <ul>${data.referrals.split('\n').map(line => `<li>${line}</li>`).join('')}</ul>
+        //         </div>
+        //     `;
+        // }
+
+
+        // import marked from 'marked';
+
+        // function displayDiagnosisData(data) {
+        //     const diagnosisDiv = document.getElementById("diagnosisResult");
+
+        //     // Parse Markdown to HTML
+        //     const notesHtml = marked(data.notes);
+        //     const reportHtml = marked(data.report);
+        //     const clinicalHtml = marked(data.clinical);
+        //     const referralsHtml = marked(data.referrals);
+
+        //     diagnosisDiv.innerHTML = `
+        //         <div>
+        //             <h3>Notes</h3>
+        //             ${notesHtml}
+        //         </div>
+        //         <div>
+        //             <h3>Report</h3>
+        //             ${reportHtml}
+        //         </div>
+        //         <div>
+        //             <h3>Clinical Evaluation</h3>
+        //             ${clinicalHtml}
+        //         </div>
+        //         <div>
+        //             <h3>Referrals & Tests</h3>
+        //             ${referralsHtml}
+        //         </div>
+        //     `;
+        // }
+
+
+        window.onload = fetchDiagnosisData;
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/gh/MarketingPipeline/Markdown-Tag/markdown-tag.js"></script> 
+
+</body>
+</html>

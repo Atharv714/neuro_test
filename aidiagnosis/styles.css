@@ -1,0 +1,83 @@
+@import url('https://fonts.googleapis.com/css2?family=Varela+Round&display=swap');
+
+*{
+    font-family: 'varela round';
+}
+
+.container {
+    max-width: 70%;
+    margin: 50px auto;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.messages {
+    border: 1px solid #ffffff;
+    padding: 10px;
+    height: 300px;
+    overflow-y: scroll;
+    background-color: #ffffff;
+}
+
+.message {
+    margin: 10px 0;
+}
+
+.message.user {
+    display: inline-block;
+    max-width: 80%;
+    padding: 10px 15px;
+    word-wrap: break-word;
+    background-color: #00ff51;
+    color: black;
+    border-radius: 100px;
+    text-align: left;
+    float: right;
+    clear: both;
+}
+
+.message.assistant {
+    display: inline-block;
+    max-width: 80%;
+    padding: 10px 15px;
+    word-wrap: break-word;
+    background-color: #adadad;
+    color: black;
+    border-radius: 12px;
+    text-align: left;
+    float: left;
+    clear: both;
+}
+
+.input-container {
+    border-radius: 12px;
+    border-radius: 8px;
+    margin-top: 20px;
+    display: flex;
+}
+
+.input-container input {
+    flex-grow: 1;
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    outline: 2px black;
+}
+
+.input-container button {
+    padding: 10px 20px;
+    border: none;
+    background-color: black;
+    color: white;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-left: 10px;
+}
+
+h2,
+h3 {
+    text-align: center;
+    color: #333;
+}
